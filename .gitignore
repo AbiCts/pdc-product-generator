@@ -1,0 +1,69 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets.*
+credentials.*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Operating system
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Neuro SAN runtime files
+logs/
+log/
+*.log
+agent_thinking.txt
+thinking/
+_temp_validate_*
+temp/
+
+# Generated output
+generated/
+output/
+*.generated.xml
+*.pricing.xml
+
+# Oracle installation resources
+*.xsd
+PDC_home/
+
+# Real catalog profiles
+config/pdc_catalog_profile.json
+!config/pdc_catalog_profile.example.json
+
+# Build and packaging
+build/
+dist/
+*.egg-info/
+
+# Test caches
+.tox/
+.mypy_cache/
+.ruff_cache/
+
+# Local PowerPoint/PDF templates
+Presentation.pdf

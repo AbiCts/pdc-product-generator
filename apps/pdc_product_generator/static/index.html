@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <meta
+        name="description"
+        content="Generate and test Oracle BRM/PDC 15.2 pricing XML."
+    >
+
+    <title>PDC Product Studio</title>
+
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/test-scenarios.css">
+
+    <script src="/static/app.js" defer></script>
+</head>
+
+<body>
+    <div class="app-shell">
+        <header class="topbar">
+            <a
+                class="brand"
+                href="/"
+                aria-label="PDC Product Studio"
+            >
+                <span
+                    class="brand-mark"
+                    aria-hidden="true"
+                >
+                    P
+                </span>
+
+                <span>
+                    <strong>PDC Product Studio</strong>
+                    <small>Oracle BRM / PDC 15.2</small>
+                </span>
+            </a>
+
+            <div
+                class="connection"
+                id="connection"
+                role="status"
+                aria-live="polite"
+            >
+                <span class="connection-dot"></span>
+                <span id="connection-label">
+                    Checking service
+                </span>
+            </div>
+        </header>
+
+        <main>
+            <section class="hero">
+                <span class="eyebrow">
+                    Natural language to validated pricing XML
+                </span>
+
+                <h1>
+                    Build PDC products with clarity.
+                </h1>
+
+                <p>
+                    Describe a complete pricing requirement in plain
+                    language. Neuro SAN generates identifiers, renders
+                    Oracle PDC XML, validates its references, and creates
+                    applicable test scenarios locally.
+                </p>
+            </section>
+
+            <section class="workspace">
+                <article class="card composer-card">
+                    <header class="section-heading">
+                        <div>
+                            <span class="step">01</span>
+                            <h2>Product requirement</h2>
+                        </div>
+
+                        <button
+                            class="text-button"
+                            id="clear-button"
+                            type="button"
+                        >
+                            Clear
+                        </button>
+                    </header>
+
+                    <form id="prompt-form">
+                        <label
+                            class="sr-only"
+                            for="prompt"
+                        >
+                            Natural-language product requirement
+                        </label>
+
+                        <textarea
+                            id="prompt"
+                            name="prompt"
+                            maxlength="24000"
+                            spellcheck="true"
+                            required
+                            placeholder="Describe the product, offer type, components, amount, currency, event, RUM, validity, proration, tax, and catalog references..."
+                        ></textarea>
+
+                        <footer class="composer-footer">
+                            <span>
+                                <kbd>Ctrl</kbd>
+                                +
+                                <kbd>Enter</kbd>
+                                to generate
+                            </span>
+
+                            <button
+                                class="primary-button"
+                                id="generate-button"
+                                type="submit"
+                            >
+                                <span class="button-label">
+                                    Generate XML
+                                </span>
+
+                                <span
+                                    class="spinner"
+                                    aria-hidden="true"
+                                ></span>
+                            </button>
+                        </footer>
+                    </form>
+
+                    <div
+                        class="notice"
+                        id="error-notice"
+                        role="alert"
+                        hidden
+                    >
+                        <strong>Generation failed</strong>
+                        <span id="error-message"></span>
+                    </div>
+                </article>
+
+                <article
+                    class="card result-card"
+                    aria-live="polite"
+                >
+                    <header class="section-heading result-heading">
+                        <div>
+                            <span class="step">02</span>
+                            <h2>Generated output</h2>
+                        </div>
+
+                        <button
+                            class="secondary-button"
+                            id="copy-button"
+                            type="button"
+                            disabled
+                        >
+                            <span id="copy-label">
+                                Copy XML
+                            </span>
+                        </button>
+                    </header>
+
+                    <div
+                        class="validation-bar"
+                        id="validation-bar"
+                        hidden
+                    >
+                        <span
+                            class="status-pill"
+                            id="status-pill"
+                        >
+                            Pending
+                        </span>
+
+                        <span id="validation-summary"></span>
+                    </div>
+
+                    <div
+                        class="empty-state"
+                        id="empty-state"
+                    >
+                        <div
+                            class="document-icon"
+                            aria-hidden="true"
+                        >
+                            &lt;/&gt;
+                        </div>
+
+                        <h3>Your XML will appear here</h3>
+
+                        <p>
+                            Output remains in the browser session and
+                            is never saved automatically.
+                        </p>
+                    </div>
+
+                    <div
+                        class="loading-state"
+                        id="loading-state"
+                        hidden
+                    >
+                        <div class="loading-line"></div>
+                        <div class="loading-line short"></div>
+                        <div class="loading-line"></div>
+
+                        <p>
+                            Generating and validating pricing objects...
+                        </p>
+                    </div>
+
+                    <pre
+                        class="xml-viewer"
+                        id="xml-viewer"
+                        tabindex="0"
+                        hidden
+                    ><code id="xml-output"></code></pre>
+
+                    <pre
+                        class="assistant-output"
+                        id="assistant-output"
+                        tabindex="0"
+                        hidden
+                    ></pre>
+                </article>
+            </section>
+
+            <section
+                class="card test-panel"
+                id="test-panel"
+                hidden
+            >
+                <header class="test-heading">
+                    <div>
+                        <span class="step">03</span>
+                        <h2>Applicable test scenarios</h2>
+                    </div>
+
+                    <div class="test-counts">
+                        <span
+                            class="count passed"
+                            id="passed-count"
+                        >
+                            0 passed
+                        </span>
+
+                        <span
+                            class="count failed"
+                            id="failed-count"
+                        >
+                            0 failed
+                        </span>
+
+                        <span
+                            class="count manual"
+                            id="manual-count"
+                        >
+                            0 manual
+                        </span>
+                    </div>
+                </header>
+
+                <div
+                    class="test-filters"
+                    aria-label="Test scenario filters"
+                >
+                    <button
+                        class="active"
+                        type="button"
+                        data-test-filter="ALL"
+                    >
+                        All
+                    </button>
+
+                    <button
+                        type="button"
+                        data-test-filter="AUTOMATED"
+                    >
+                        Automated
+                    </button>
+
+                    <button
+                        type="button"
+                        data-test-filter="MANUAL"
+                    >
+                        Manual
+                    </button>
+
+                    <button
+                        type="button"
+                        data-test-filter="FAILED"
+                    >
+                        Failed
+                    </button>
+                </div>
+
+                <div
+                    class="test-list"
+                    id="test-list"
+                ></div>
+            </section>
+        </main>
+    </div>
+
+    <div
+        class="toast"
+        id="toast"
+        role="status"
+        aria-live="polite"
+    >
+        XML copied
+    </div>
+</body>
+</html>

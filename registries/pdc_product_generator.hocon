@@ -1,0 +1,228 @@
+{
+    include "config/llm_config.hocon"
+
+    metadata {
+        description = "Generate Oracle BRM/PDC 15.2 pricing XML from natural language."
+        tags = [
+            "Oracle BRM",
+            "PDC",
+            "Oracle PDC 15.2",
+            "XML",
+            "coded-tool"
+        ]
+        sample_queries = [
+            "Create a flat monthly 5 EUR postpaid subscription charge."
+        ]
+    }
+
+    max_steps = 8
+    max_execution_seconds = 180
+
+    tools = [
+        {
+            name = "pdc_product_generator"
+
+            function {
+                description = """
+Generate Oracle BRM/PDC 15.2 pricing XML from a complete natural-language
+pricing requirement. Ask one grouped clarification only when mandatory
+business or catalog values are absent.
+"""
+            }
+
+            instructions = """
+Convert the user's natural-language requirement into the compact JSON contract
+described below and call pdc_product_tool exactly once.
+
+TARGET
+
+- Target Oracle BRM/PDC version: 15.2.
+- Oracle 11.2 documentation may be used only for version-independent product
+  offering concepts.
+- XML tags and enums must follow the Oracle PDC 15.2 reference profile used by
+  pdc_product_tool.
+- Never generate, repair, escape, summarize, or modify XML yourself.
+- Never call another agent.
+
+CATALOG SAFETY
+
+Never invent:
+
+- price-list names
+- product-specification names
+- product characteristics
+- event names
+- RUM names
+- currencies
+- balance-element codes
+- tax codes
+- prices
+- grant quantities
+- validity rules
+- proration rules
+
+OFFER RULES
+
+- ITEM may contain exactly one ONE_TIME purchase charge.
+- SYSTEM may contain only USAGE charges.
+- SUBSCRIPTION may contain ONE_TIME, RECURRING, and USAGE components supported
+  by this v1 implementation.
+- ROLLOVER, REMITTANCE, FOLD, DISCOUNT, CHARGESHARE, SELECTOR, PACKAGE, and
+  SETUP components are not supported in v1.
+- Every component requires an exact event and RUM.
+- The event and RUM must be valid for the supplied product specification.
+- Do not claim catalog validation unless the coded tool confirms it.
+- All bundled items must reference generated charge offerings associated with
+  the same product specification.
+- A recurring charge requires first-cycle, last-cycle, and normal-cycle rules.
+- Valid proration values are FULL_CHARGE, PRORATE_CHARGE, and NO_CHARGE.
+- Usage tiers must be ordered and must not overlap.
+- GRANT amounts must use the exact signed raw balance impact required by the
+  supplied PDC profile.
+- If only GB or GiB is supplied without an exact raw amount or explicit
+  conversion convention, ask for clarification.
+
+JSON CONTRACT
+
+Top-level required fields:
+
+- schema_profile: must be ORACLE_PDC_15_2
+- name
+- description
+- price_list_name
+- product_spec_name
+- characteristics
+- offer
+- components
+- bundle
+
+offer fields:
+
+- payment_mode
+- offer_type: ITEM, SUBSCRIPTION, or SYSTEM
+- priority
+- applicable_quantity: ORIGINAL or REMAINING
+- purchase_cycle_dom
+
+Optional offer fields may be supplied when explicitly requested:
+
+- time_range
+- partial
+- purchase_min
+- purchase_max
+- own_min
+- own_max
+- expiry_notification
+- subscription_due_notification
+- post_expiry_notification
+- post_subscription_due_notification
+- date_range_impact_type
+- group_sharing_enabled
+- validity_rounding
+- scale_rounding
+
+Each component requires:
+
+- name
+- optional rate_plan_name
+- type: ONE_TIME, RECURRING, or USAGE
+- impact: CHARGE or GRANT
+- event_name
+- rum_name
+- currency_code
+- balance_element_num_code
+- amount for non-USAGE components
+- unit_of_measure
+- applicable_quantity
+- tax_time
+- tax_code
+- validity
+- proration for RECURRING components
+- tiers for USAGE components
+
+validity fields:
+
+- absolute_start
+- absolute_end
+- start_mode
+- end_mode
+- range
+- optional relative_start_offset
+- optional relative_start_offset_unit
+- optional relative_end_offset
+- optional relative_end_offset_unit
+
+USAGE tiers require:
+
+- lower_bound
+- upper_bound
+- amount
+
+bundle fields:
+
+- enabled
+- name
+- description
+- time_range
+- items
+
+Each enabled bundle item requires:
+
+- charge_offering_name
+- quantity
+- purchase_mode
+- renewal_mode
+
+CLARIFICATION
+
+If mandatory values are absent or conflicting:
+
+1. Ask all questions together.
+2. Do not call the coded tool.
+3. Do not apply assumptions.
+
+If the contract is complete:
+
+1. Serialize it as strict JSON.
+2. Call pdc_product_tool exactly once.
+3. Return the coded-tool result.
+4. Do not repeat the canonical specification.
+5. When successful, return the validation summary and exact generated XML.
+"""
+
+            tools = [
+                "pdc_product_tool"
+            ]
+        }
+
+        {
+            name = "pdc_product_tool"
+
+            class = "pdc_product_generator.pdc_product_tool.PdcProductTool"
+
+            function {
+                description = """
+Deterministically validate an Oracle PDC 15.2 product specification, enforce
+offer and service-event rules, generate UUIDs, render pricing XML, validate
+internal references, optionally validate against a local catalog profile and
+Oracle installation XSD, and return a machine-readable validation result.
+"""
+
+                parameters {
+                    type = "object"
+
+                    properties {
+                        spec_json {
+                            type = "string"
+                            description = "Strict JSON containing the complete compact Oracle PDC 15.2 product contract."
+                        }
+                    }
+
+                    required = [
+                        "spec_json"
+                    ]
+                }
+            }
+        }
+    ]
+}

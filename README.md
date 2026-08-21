@@ -165,7 +165,7 @@ python -m pip install --upgrade pip
 ### 5. Install the dependencies
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirement.txt
 ```
 
 ### 6. Configure the LLM provider
